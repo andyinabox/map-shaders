@@ -1,0 +1,25 @@
+@import '~/normalize.css/normalize.css';
+
+// @import 'scss/variables';
+// @import 'scss/mixins';
+// @import 'scss/base';
+// @import 'scss/layout';
+
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+#map, #overlay {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+
+#overlay {
+  z-index: 999;
+}
