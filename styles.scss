@@ -20,6 +20,10 @@ body {
   top: 0;
 }
 
+#map {
+  visibility: hidden;
+}
+
 #overlay {
   z-index: 999;
 }

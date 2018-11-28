@@ -1,6 +1,38 @@
 import './styles.scss';
 import mapboxgl from 'mapbox-gl';
-import tileGrabber from './tile-grabber';
+// import tileGrabber from './tile-grabber';
+
+import vertShader from './water.vert';
+import fragShader from './water.frag';
+
+console.log(vertShader, fragShader);
+
+var shell = require("gl-now")()
+shell.preventDefaults = false;
+
+var createShader = require("gl-shader")
+var createTexture = require("gl-texture2d")
+var drawTriangle = require("a-big-triangle")
+// var glslify = require("glslify")
+
+// var createShader = glslify({
+//   vertex: "\
+//     attribute vec2 position;\
+//     varying vec2 texCoord;\
+//     void main() {\
+//       gl_Position = vec4(position, 0, 1);\
+//       texCoord = vec2(0.0,1.0)+vec2(0.5,-0.5) * (position + 1.0);\
+//     }",
+//   fragment: "\
+//     precision highp float;\
+//     uniform sampler2D texture;\
+//     varying vec2 texCoord;\
+//     void main() {\
+//       gl_FragColor = texture2D(texture, texCoord);\
+//     }",
+//   inline: true
+// })
+
 
 const MAPBOX_API_TOKEN = "pk.eyJ1IjoiYW1kYXl0b24iLCJhIjoiY2pwMWNhejQ5MGE3dTNxcWcyZDVnMHcyciJ9.Zp_La2z0S0OTBEZm6QBaKQ";
 
@@ -24,12 +56,12 @@ const map = new mapboxgl.Map({
   center: new mapboxgl.LngLat(lon ,lat)
 });
 
-map.on('load', () => {
-  const mapCanvas = mapEl.querySelector('canvas');
-  console.log(mapCanvas);
-  const ctx = mapCanvas.getContext('webgl');
-  console.log(ctx);
-})
+// map.on('load', () => {
+//   const mapCanvas = mapEl.querySelector('canvas');
+//   console.log(mapCanvas);
+//   const ctx = mapCanvas.getContext('webgl');
+//   console.log(ctx);
+// })
 
 
 // class NullIslandLayer {
@@ -77,29 +109,104 @@ map.on('load', () => {
 // });
 
 
-const overlay = document.createElement('canvas');
-overlay.id = 'overlay';
-overlay.width = window.innerWidth;
-overlay.height = window.innerHeight;
-document.body.append(overlay);
+// const overlay = document.createElement('canvas');
+// overlay.id = 'overlay';
+// overlay.width = window.innerWidth;
+// overlay.height = window.innerHeight;
+// document.body.append(overlay);
 
-const tmpCanvas = document.createElement('canvas');
+// const tmpCanvas = document.createElement('canvas');
 
-const drawOverlay = () => {
-  map.panBy([50, 50]);
-  const mapCanvas = mapEl.querySelector('.mapboxgl-canvas');
-  // console.log(mapCanvas);
-  const ctx = overlay.getContext('2d');
-  // ctx.mozImageSmoothingEnabled = false;
-  // ctx.webkitImageSmoothingEnabled = false;
-  // ctx.msImageSmoothingEnabled = false;
-  // ctx.imageSmoothingEnabled = false;
-  // ctx.drawImage(tmpCanvas, 0, 0,600, 100);
-  ctx.clearRect(0, 0, overlay.width, overlay.height);
-  ctx.drawImage(mapCanvas, 0, 0)
-  window.setTimeout(drawOverlay, 500);
-}
-map.on('load', drawOverlay);
+let shader;
+let texture;
+let mapCanvas;
+let frame = 0;
+let mouseDown = [null, null];
+
+// events
+
+document.addEventListener('mousedown', evt => mouseDown = [shell.mouseX, shell.mouseY]);
+document.addEventListener('mouseup', evt => mouseDown = [null, null]);
+
+shell.on("gl-init", function () {
+  var gl = shell.gl
+
+  //Create texture
+  // texture = createTexture(gl, baboon)
+
+  //Create shader
+  // shader = createShader(gl)
+  // shader.attributes.position.location = 0
+})
+
+shell.on('tick', (t) => {
+  // update frame count
+  frame++;
+
+  // rotate camera based on mouse
+  // camera.rotate(
+  //   [shell.mouseX / shell.width, shell.mouseY / shell.height],
+  //   [shell.prevMouseX / shell.width, shell.prevMouseY / shell.height]
+  // );
+});
+
+shell.on("gl-render", function (t) {
+
+  //Draw it
+  if(texture && shader) {
+    texture.setPixels(mapCanvas);
+    shader.bind()
+    shader.uniforms.iChannel0 = texture.bind()
+    shader.uniforms.iResolution = [shell.width, shell.height, 1.0];
+    shader.uniforms.iGlobalTime = (new Date()).getTime();
+    shader.uniforms.iTimeDelta = t;
+    shader.uniforms.iFrame = frame;
+    shader.uniforms.iMouse = [shell.mouseX, shell.mouseY, mouseDown[0], mouseDown[1]];
+  }
+  drawTriangle(shell.gl)
+})
+
+map.on('load', function() {
+  const gl = shell.gl;
+
+  mapCanvas = mapEl.querySelector('.mapboxgl-canvas');
+  texture = createTexture(gl, mapCanvas)
+  shader = createShader(gl, vertShader, fragShader);
+  // "\
+  //   attribute vec2 position;\
+  //   varying vec2 texCoord;\
+  //   void main() {\
+  //     gl_Position = vec4(position, 0, 1);\
+  //     texCoord = vec2(0.0,1.0)+vec2(0.5,-0.5) * (position + 1.0);\
+  //   }",
+  // "\
+  //   precision highp float;\
+  //   uniform sampler2D texture;\
+  //   varying vec2 texCoord;\
+  //   void main() {\
+  //     gl_FragColor = texture2D(texture, texCoord);\
+  //   }"
+  // );
+  shader.attributes.position.location = 0
+
+  // window.setInterval(() => map.panBy([window.innerWidth/3, 0]), 3000);
+})
+
+// const drawOverlay = () => {
+//   map.panBy([50, 50]);
+//   const mapCanvas = mapEl.querySelector('.mapboxgl-canvas');
+//   // console.log(mapCanvas);
+//   const ctx = overlay.getContext('2d');
+//   // ctx.mozImageSmoothingEnabled = false;
+//   // ctx.webkitImageSmoothingEnabled = false;
+//   // ctx.msImageSmoothingEnabled = false;
+//   // ctx.imageSmoothingEnabled = false;
+//   // ctx.drawImage(tmpCanvas, 0, 0,600, 100);
+//   ctx.clearRect(0, 0, overlay.width, overlay.height);
+//   ctx.drawImage(mapCanvas, 0, 0)
+//   window.setTimeout(drawOverlay, 500);
+// }
+// map.on('load', drawOverlay);
 
 // console.log('tile grabber go!')
 // tileGrabber(
