@@ -3,6 +3,7 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const DotenvPlugin = require('dotenv-webpack');
 
 const devMode = process.env.NODE_ENV !== 'production';
 
@@ -14,7 +15,7 @@ module.exports =  {
     filename: 'bundle.js' 
   },
   devServer: {
-    https: true
+    // https: true
   },
   module: {
     rules:[
@@ -62,6 +63,7 @@ module.exports =  {
     ]
   },
   plugins: [
+    new DotenvPlugin(),
     new HtmlWebpackPlugin({
       template: './index.html'
     }),

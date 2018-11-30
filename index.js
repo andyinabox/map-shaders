@@ -6,11 +6,9 @@ import createShader from 'gl-shader';
 import drawTriangle from 'a-big-triangle';
 
 // import App from './js/app';
-
 // const app = new App();
 
-const MAPBOX_API_TOKEN = "pk.eyJ1IjoiYW1kYXl0b24iLCJhIjoiY2pwMWNhejQ5MGE3dTNxcWcyZDVnMHcyciJ9.Zp_La2z0S0OTBEZm6QBaKQ";
-mapboxgl.accessToken = MAPBOX_API_TOKEN;
+mapboxgl.accessToken = process.env.MAPBOX_API_TOKEN;
 
 const shell = createShell();
 shell.preventDefaults = false;
