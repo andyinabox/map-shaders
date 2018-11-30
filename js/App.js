@@ -1,19 +1,43 @@
 import * as dat from 'dat.gui';
-import * as THREE from 'three';
-import OrbitControls from "orbit-controls-es6";
-import { OBJLoader } from '@calvinscofield/three-loaders';
+import mapboxgl from 'mapbox-gl';
+import createShell from 'gl-now';
+import createTexture from 'gl-texture2d';
+import createShader from 'gl-shader';
+import drawTriangle from 'a-big-triangle';
+
+mapboxgl.accessToken = process.env.MAPBOX_API_TOKEN;
+
+const _shaders = {
+  default: {
+    vert: require('../glsl/default.vert'),
+    frag: require('../glsl/default.frag')
+  },
+  water: {
+    vert: require('../glsl/default.vert'),
+    frag: require('../glsl/water.frag')
+  },
+  breathe: {
+    vert: require('../glsl/default.vert'),
+    frag: require('../glsl/breathe.frag')
+  }
+}
+
+const _map_styles = {
+  satellite: 'mapbox://styles/mapbox/satellite-v9'
+};
 
 // params used for the gui
 const _default_params = {
-  color: 0x00ff00
+  mapStyle: 'satellite',
+  shader: 'breathe',
+  lon: -93.282496,
+  lat: 44.9998631,
+  zoom: 16
 };
 
 // costructor options
 const _default_options = {
-  color: 0x00ff00,
-  camFov: 60,
-  camNear: 0.1,
-  camFar: 1000
+  mapCanvasSelector: '.mapboxgl-canvas'
 }
 
 
@@ -22,56 +46,76 @@ export default class App {
     this.params = Object.assign({}, _default_params, params);
     this.opts = Object.assign({}, _default_options, options);
 
-    // set the scene
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(
-      this.opts.camFov,
-      window.innerWidth / window.innerHeight,
-      this.opts.camNear,
-      this.opts.camFar
-    );
-    this.camera.position.z = 3;
+    this.el = document.createElement('div');
+    this.el.id = 'map';
+    document.body.append(this.el);
 
-    // set up renderer
-    this.renderer = new THREE.WebGLRenderer();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(this.renderer.domElement);
+    this.mouseDown = [null, null];
 
-    // orbit controls
-    this.controls =  new OrbitControls(this.camera, this.renderer.domElement);
+    this.map = new mapboxgl.Map({
+      container: this.el,
+      style: _map_styles[this.params.mapStyle],
+      zoom: this.params.zoom,
+      center: new mapboxgl.LngLat(this.params.lon, this.params.lat)
+    });
+    this.map.on('load', this.update.bind(this));
 
-    // .obj loader
-    this.loader = new OBJLoader();
-    this.loader.load('/assets/TV.obj', obj => {
-      this.tv = obj;
-      this.tv.traverse(child => {
-        if (child.isMesh) {
-          child.material = new THREE.MeshBasicMaterial({
-            color: this.params.color,
-            wireframe: true
-          });
-        }
-      });
-      this.scene.add(this.tv);
-      this.update();
+    this.shell = createShell();
+    this.shell.preventDefaults = false;
+
+    // events
+    document.addEventListener('mousedown', evt => {
+      this.mouseDown = [this.shell.mouseX, this.shell.mouseY]
+    });
+    document.addEventListener('mouseup', evt => {
+      this.mouseDown = [null, null]
     });
 
+    this.shell.on('gl-init', this.glInit.bind(this));
+    this.shell.on('tick', this.tick.bind(this));
+    this.shell.on('gl-render', this.glRender.bind(this));
 
 
+  }
+
+  glInit() {
+    this.startTime = (new Date()).getTime();
     this.setupGui();
+    this.update();
+  }
 
-    const animate = () => {
-      requestAnimationFrame(animate);
-      this.renderer.render(this.scene, this.camera);
+  tick(t) {
+
+  }
+  
+  glRender(t) {
+    //Draw it
+    if (this.texture && this.shader && this.mapCanvas) {
+      this.texture.setPixels(this.mapCanvas);
+      this.shader.bind()
+      this.setShaderToyUniforms(this.shader, [this.texture], t);
     }
-    animate();
+    drawTriangle(this.shell.gl)
+  }
+
+  setShaderToyUniforms(shader, textures=[], renderTime) {
+    shader.uniforms.iResolution = [this.shell.width, this.height, 1.0];
+    shader.uniforms.iTime = (new Date()).getTime() - this.startTime;
+    shader.uniforms.iTimeDelta = renderTime;
+    shader.uniforms.iFrame = parseInt(this.shell.frameCount);
+    shader.uniforms.iMouse = [this.shell.mouseX, this.shell.mouseY, this.mouseDown[0], this. mouseDown[1]];
+
+    textures.forEach((tex, i) => {
+      shader.uniforms['iChannel'+i] = tex.bind(i);
+    });
   }
 
   setupGui() {
     this.gui = new dat.GUI();
 
     // set gui controls
-    this.gui.addColor(this.params, 'color');
+    this.gui.add(this.params, 'shader', Object.keys(_shaders));
+    this.gui.add(this.params, 'mapStyle', Object.keys(_map_styles));
 
     // automatically set listener for all params
     this.gui.__controllers.forEach((controller, index) => {
@@ -79,14 +123,14 @@ export default class App {
     });
   }
 
-
   update() {
-    if(this.tv) {
-      this.tv.traverse(child => {
-        if (child.isMesh) {
-          child.material.color.set(this.params.color);
-        }
-      });
+    const gl = this.shell.gl;
+    const mapCanvas = this.el.querySelector('.mapboxgl-canvas');
+    if(gl && mapCanvas) {
+      this.mapCanvas = mapCanvas;
+      this.texture = createTexture(gl, this.mapCanvas)
+      this.shader = createShader(gl, _shaders[this.params.shader].vert, _shaders[this.params.shader].frag);
+      this.shader.attributes.position.location = 0
     }
   }
 

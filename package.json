@@ -44,7 +44,6 @@
     "glsl-map": "^1.0.1",
     "glslify": "^7.0.0",
     "mapbox-gl": "^0.51.0",
-    "normalize.css": "^8.0.1",
     "orbit-controls-es6": "^2.0.0",
     "three": "^0.98.0"
   }
