@@ -21,9 +21,10 @@ body {
 }
 
 #map {
-  visibility: hidden;
+  z-index: 999;
+  opacity: 0;
 }
 
 #overlay {
-  z-index: 999;
+  // z-index: 999;
 }

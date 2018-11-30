@@ -2,8 +2,8 @@ import './styles.scss';
 import mapboxgl from 'mapbox-gl';
 // import tileGrabber from './tile-grabber';
 
-import vertShader from './water.vert';
-import fragShader from './water.frag';
+import vertShader from './shader.vert';
+import fragShader from './shader.frag';
 
 console.log(vertShader, fragShader);
 
@@ -46,7 +46,7 @@ document.body.append(mapEl);
 
 var lon = -93.282496;
 var lat = 44.9998631;
-var zoom = 14;
+var zoom = 15;
 
 const map = new mapboxgl.Map({
   container: mapEl,
@@ -120,7 +120,7 @@ const map = new mapboxgl.Map({
 let shader;
 let texture;
 let mapCanvas;
-let frame = 0;
+let startTime;
 let mouseDown = [null, null];
 
 // events
@@ -130,7 +130,7 @@ document.addEventListener('mouseup', evt => mouseDown = [null, null]);
 
 shell.on("gl-init", function () {
   var gl = shell.gl
-
+  startTime = (new Date()).getTime();
   //Create texture
   // texture = createTexture(gl, baboon)
 
@@ -141,7 +141,7 @@ shell.on("gl-init", function () {
 
 shell.on('tick', (t) => {
   // update frame count
-  frame++;
+  // frame++;
 
   // rotate camera based on mouse
   // camera.rotate(
@@ -158,9 +158,9 @@ shell.on("gl-render", function (t) {
     shader.bind()
     shader.uniforms.iChannel0 = texture.bind()
     shader.uniforms.iResolution = [shell.width, shell.height, 1.0];
-    shader.uniforms.iGlobalTime = (new Date()).getTime();
+    shader.uniforms.iTime = (new Date()).getTime() - startTime;
     shader.uniforms.iTimeDelta = t;
-    shader.uniforms.iFrame = frame;
+    shader.uniforms.iFrame = parseInt(shell.frameCount);
     shader.uniforms.iMouse = [shell.mouseX, shell.mouseY, mouseDown[0], mouseDown[1]];
   }
   drawTriangle(shell.gl)

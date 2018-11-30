@@ -40,6 +40,7 @@
     "gl-now": "^1.4.0",
     "gl-shader": "^4.2.1",
     "gl-texture2d": "^2.1.0",
+    "glsl-map": "^1.0.1",
     "glslify": "^7.0.0",
     "mapbox-gl": "^0.51.0",
     "normalize.css": "^8.0.1",
