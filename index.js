@@ -2,10 +2,10 @@ import './styles.scss';
 import mapboxgl from 'mapbox-gl';
 // import tileGrabber from './tile-grabber';
 
-import vertShader from './shader.vert';
-import fragShader from './shader.frag';
+// import vertShader from './glsl/default.vert';
+// import fragShader from './glsl/default.frag';
 
-console.log(vertShader, fragShader);
+// console.log(vertShader, fragShader);
 
 var shell = require("gl-now")()
 shell.preventDefaults = false;
@@ -32,6 +32,21 @@ var drawTriangle = require("a-big-triangle")
 //     }",
 //   inline: true
 // })
+
+const shaders = {
+  default: {
+    vert: require('./glsl/default.vert'),
+    frag: require('./glsl/default.frag')
+  },
+  water: {
+    vert: require('./glsl/default.vert'),
+    frag: require('./glsl/water.frag')   
+  },
+  breathe: {
+    vert: require('./glsl/default.vert'),
+    frag: require('./glsl/breathe.frag')
+  }
+}
 
 
 const MAPBOX_API_TOKEN = "pk.eyJ1IjoiYW1kYXl0b24iLCJhIjoiY2pwMWNhejQ5MGE3dTNxcWcyZDVnMHcyciJ9.Zp_La2z0S0OTBEZm6QBaKQ";
@@ -171,7 +186,7 @@ map.on('load', function() {
 
   mapCanvas = mapEl.querySelector('.mapboxgl-canvas');
   texture = createTexture(gl, mapCanvas)
-  shader = createShader(gl, vertShader, fragShader);
+  shader = createShader(gl, shaders.breathe.vert, shaders.breathe.frag);
   // "\
   //   attribute vec2 position;\
   //   varying vec2 texCoord;\
