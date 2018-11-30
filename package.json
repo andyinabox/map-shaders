@@ -1,7 +1,7 @@
 {
-  "name": "map-test-canvas",
+  "name": "map-shaders",
   "version": "0.0.1",
-  "description": "Template for webpack/threejs project",
+  "description": "Experimenting with shaders on tile-based map",
   "main": "webpack.config.js",
   "scripts": {
     "setup": "./setup.sh",
