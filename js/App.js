@@ -12,14 +12,18 @@ const _shaders = {
     vert: require('../glsl/default.vert'),
     frag: require('../glsl/default.frag')
   },
-  water: {
+  warp: {
     vert: require('../glsl/default.vert'),
-    frag: require('../glsl/water.frag')
+    frag: require('../glsl/warp.frag')
   },
   breathe: {
     vert: require('../glsl/default.vert'),
     frag: require('../glsl/breathe.frag')
-  }
+  },
+  wave1: {
+    vert: require('../glsl/default.vert'),
+    frag: require('../glsl/wave1.frag')
+  },
 }
 
 const _map_styles = {
@@ -29,7 +33,7 @@ const _map_styles = {
 // params used for the gui
 const _default_params = {
   mapStyle: 'satellite',
-  shader: 'breathe',
+  shader: 'warp',
   lon: -93.282496,
   lat: 44.9998631,
   zoom: 16
@@ -87,7 +91,7 @@ export default class App {
   tick(t) {
 
   }
-  
+
   glRender(t) {
     //Draw it
     if (this.texture && this.shader && this.mapCanvas) {
