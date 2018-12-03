@@ -1,6 +1,6 @@
 {
   "name": "map-shaders",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Experimenting with shaders on tile-based map",
   "main": "webpack.config.js",
   "scripts": {
