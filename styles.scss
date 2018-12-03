@@ -14,14 +14,15 @@ body {
 }
 
 #map {
-  z-index: 1;
+  z-index: 0;
   opacity: 0;
 }
 
 #overlay {
+  z-index: 1;
   // z-index: 999;
 }
 
-.dg {
+.dg.ac {
   z-index: 999;
 }

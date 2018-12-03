@@ -35,6 +35,7 @@ export default class App {
 
     this.shell = createShell();
     this.shell.preventDefaults = false;
+    this.shell.stopPropagation = false;
 
     // events
     document.addEventListener('mousedown', evt => {
@@ -86,6 +87,8 @@ export default class App {
   setupGui() {
     this.gui = new dat.GUI();
 
+    this.gui.domElement.addEventListener('clock', evt => console.log(evt));
+
     // set gui controls
     this.gui.add(this.params, 'shader', Object.keys(this.shaders));
     this.gui.add(this.params, 'mapStyle', Object.keys(this.opts.mapStyles));
@@ -99,6 +102,12 @@ export default class App {
   update() {
     const gl = this.shell.gl;
     const mapCanvas = this.el.querySelector('.mapboxgl-canvas');
+
+    const styleUrl = this.opts.mapStyles[this.params.mapStyle];
+    if( styleUrl !== this.map.getStyle()) {
+      this.map.setStyle(styleUrl);
+    }
+
     if(gl && mapCanvas) {
       const vert = this.shaders[this.params.shader].vert;
       const frag = this.shaders[this.params.shader].frag;
@@ -106,7 +115,7 @@ export default class App {
       console.log(vert);
       console.log("FRAG SHADER");
       console.log(frag);
-      
+
       this.mapCanvas = mapCanvas;
       this.texture = createTexture(gl, this.mapCanvas)
       this.shader = createShader(gl, vert, frag);

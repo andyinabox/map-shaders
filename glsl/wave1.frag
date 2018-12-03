@@ -1,10 +1,5 @@
 precision highp float;
 
-// offset determines how much warping there will be
-// #define offset 0.1
-// slow down rotation by dividing by larger value
-#define speed 1000.0
-
 uniform vec3 iResolution;
 uniform float	iTime;
 uniform float	iTimeDelta;
