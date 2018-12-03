@@ -38,6 +38,7 @@
     "a-big-triangle": "^1.0.3",
     "dat.gui": "^0.7.3",
     "events": "^3.0.0",
+    "geolocation": "^0.2.0",
     "gl-now": "^1.4.0",
     "gl-shader": "^4.2.1",
     "gl-texture2d": "^2.1.0",

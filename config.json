@@ -14,8 +14,8 @@
    }
   },
   "params" : {
-   "mapStyle": "satellite",
-   "shader": "wave1",
+   "mapStyle": "satellite-streets",
+   "shader": "warp3",
    "lon": -93.282496,
    "lat": 44.9998631,
    "zoom": 16
@@ -28,6 +28,14 @@
     "warp": {
       "vert": "default.vert",
       "frag": "warp.frag"
+    },
+    "warp2": {
+      "vert": "default.vert",
+      "frag": "warp2.frag"
+    },
+    "warp3": {
+      "vert": "default.vert",
+      "frag": "warp3.frag"
     },
     "breathe": {
       "vert": "default.vert",

@@ -1,5 +1,6 @@
 import * as dat from 'dat.gui';
 import mapboxgl from 'mapbox-gl';
+import geolocation from 'geolocation';
 import createShell from 'gl-now';
 import createTexture from 'gl-texture2d';
 import createShader from 'gl-shader';
@@ -49,6 +50,31 @@ export default class App {
     this.shell.on('tick', this.tick.bind(this));
     this.shell.on('gl-render', this.glRender.bind(this));
 
+    // if(this.document) {
+    //   this.document.addEventListener('keydown', function (e) {
+    //     e.preventDefault();
+    //     console.log(e.which);
+    //     if (e.which === 38) { // up
+    //       map.panBy([0, -deltaDistance], {
+    //         easing: easing
+    //       });
+    //     } else if (e.which === 40) { // down
+    //       map.panBy([0, deltaDistance], {
+    //         easing: easing
+    //       });
+    //     } else if (e.which === 37) { // left
+    //       map.easeTo({
+    //         bearing: map.getBearing() - deltaDegrees,
+    //         easing: easing
+    //       });
+    //     } else if (e.which === 39) { // right
+    //       map.easeTo({
+    //         bearing: map.getBearing() + deltaDegrees,
+    //         easing: easing
+    //       });
+    //     }
+    //   }, true);    
+    // }
 
   }
 
@@ -59,15 +85,29 @@ export default class App {
   }
 
   tick(t) {
-
+    // const panX = this.shell.mouseX - this.shell.width/2.0;
+    // const panY = this.shell.mouseY - this.shell.width / 2.0;
+    // console.log(panX, panY);
+    // if(!this.map.isMoving) {
+    //   this.map.panBy([panX / 2., panY / 2.]);
+    // }
+    // console.log( this.shell.release('i') );
   }
 
   glRender(t) {
+    const panX = 0;
+    const panY = -1;
+    this.map.panBy([panX, panY], { animate: false });
+
     //Draw it
     if (this.texture && this.shader && this.mapCanvas) {
       this.texture.setPixels(this.mapCanvas);
       this.shader.bind()
       this.setShaderToyUniforms(this.shader, [this.texture], t);
+      // this.shader.uniforms.panDelta = [
+      //   this.shell.width/this.shell.width-panX,
+      //   this.shell.height/this.shell.height-panY
+      // ]
     }
     drawTriangle(this.shell.gl)
   }
@@ -108,6 +148,10 @@ export default class App {
       this.map.setStyle(styleUrl);
     }
 
+    if(!this.locationSet) {
+      this.getCurrentLocation();
+    }
+
     if(gl && mapCanvas) {
       const vert = this.shaders[this.params.shader].vert;
       const frag = this.shaders[this.params.shader].frag;
@@ -121,6 +165,18 @@ export default class App {
       this.shader = createShader(gl, vert, frag);
       this.shader.attributes.position.location = 0
     }
+  }
+
+  getCurrentLocation() {
+    geolocation.getCurrentPosition((err, position) => {
+      if (err) console.error(err);
+
+      this.params.lat = position.coords.latitude;
+      this.params.lon = position.coords.longitude;
+      // params.zoom = 17;
+      this.map.setCenter([this.params.lon, this.params.lat]);
+      this.locationSet = true;
+    });
   }
 
 };
