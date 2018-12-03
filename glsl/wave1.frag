@@ -1,14 +1,9 @@
 precision highp float;
 
-// https://www.shadertoy.com/view/4slGRM
-// Simple Water shader. (c) Victor Korsun, bitekas@gmail.com; 2012.
-//
-// Attribution-ShareAlike CC License.
-
 // offset determines how much warping there will be
 // #define offset 0.1
 // slow down rotation by dividing by larger value
-// #define speed 1000.0
+#define speed 1000.0
 
 uniform vec3 iResolution;
 uniform float	iTime;
@@ -20,79 +15,51 @@ uniform sampler2D iChannel0;
 
 varying vec2 uv;
 
-const float PI = 3.1415926535897932;
-
 #pragma glslify: map = require(glsl-map)
+#pragma glslify: snoise2 = require(glsl-noise/simplex/2d)
 
-// play with these parameters to custimize the effect
-// ===================================================
-
-//speed
-const float speed = 0.2;
-const float speed_x = 0.3;
-const float speed_y = 0.3;
-
-// refraction
-const float emboss = 0.50;
-const float intensity = 2.4;
-const int steps = 8;
-const float frequency = 6.0;
-const int angle = 7; // better when a prime
-
-// reflection
-const float delta = 60.;
-const float intence = 700.;
-
-const float reflectionCutOff = 0.012;
-const float reflectionIntence = 200000.;
-
-// ===================================================
-
-
-float col(vec2 coord,float time) {
-  float delta_theta = 2.0 * PI / float(angle);
-  float col = 0.0;
-  float theta = 0.0;
-  for (int i = 0; i < steps; i++) {
-    vec2 adjc = coord;
-    theta = delta_theta*float(i);
-    adjc.x += cos(theta)*time*speed + time * speed_x;
-    adjc.y -= sin(theta)*time*speed - time * speed_y;
-    col = col + cos( (adjc.x*cos(theta) - adjc.y*sin(theta))*frequency)*intensity;
-  }
-  return cos(col);
+vec2 nodeWarp(vec2 node, vec2 uv, float offset) {
+  float hight = min(node.x, node.y);
+  float dist = distance(node, uv);
+  vec2 uv2 = uv * (1.0-offset) + offset;
+  vec2 uv3 = uv2 - (vec2(dist)*offset);
+  return uv3;
 }
 
-//---------- main
-
 void main() {
-  float time = iTime*1.3;
+  // vec4 color = texture2D(iChannel0, uv);
 
-  vec2 p = uv;//(fragCoord.xy) / iResolution.xy;
-  // vec2 p = (gl_FragCoord.xy) / iResolution.xy;
-  vec2 c1 = p;
-  vec2 c2 = p;
-  float cc1 = col(c1,time);
-  //
-  // c2.x += iResolution.x/delta;
-  float dx = emboss*(cc1-col(c2,time))/delta;
-  //
-  c2.x = p.x;
-  // c2.y += iResolution.y/delta;
-  float dy = emboss*(cc1-col(c2,time))/delta;
-  //
-  c1.x += dx*2.;
-  c1.y = -(c1.y+dy*2.);
-  //
-  float alpha = 1.+dot(dx,dy)*intence;
-  //
-  // float ddx = dx - reflectionCutOff;
-  // float ddy = dy - reflectionCutOff;
-  // if (ddx > 0. && ddy > 0.)
-  // alpha = pow(alpha, ddx*ddy*reflectionIntence);
+  // this will move in a circle between (-1, -1) and (1, 1)
+  // vec2 node = vec2(cos(iTime/speed), sin(iTime/speed));
+  // // map that circle to fit into (0, 0) and (1, 1)
+  // vec2 node2 = map(node, vec2(-1.0), vec2(1.0), vec2(0.0), vec2(1.0));
+  // // find the distance between the rotating node and current coordinates
+  // float dist = distance(node2, uv);
+  // // this will essentially scale up `offset` so that
+  // // we don't see distorded edges when we apply the offset
+  // vec2 uv2 = uv * (1.-offset) + offset;
+  // // apply offset based on distance from node
+  // vec2 uv3 = uv2 - (vec2(dist)*offset);
+  float time1 = iTime/3000.; //sin(iTime/500.);
+  float time2 = iTime/3000.; //cos(iTime/500.);
+  vec2 node1 = vec2(snoise2(vec2(time1, time2)), snoise2(vec2(time2, time1)));
+  vec2 node2 = vec2(snoise2(vec2(time2, time1)), snoise2(vec2(time1, time2)));
+  vec2 node3 = vec2(snoise2(vec2(-time1, time2)), snoise2(vec2(-time2, time1)));
+  vec2 uvWave = (nodeWarp(node1, uv, 0.07) + nodeWarp(node2, uv, 0.07) + nodeWarp(node3, uv, 0.07)) / 3.;
 
-  vec4 col = texture2D(iChannel0,c1)*(alpha);
-  // vec4 col = texture2D(iChannel0,uv);
+  vec4 color = texture2D(iChannel0, uvWave);;
 
-  gl_FragColor = col;
+  // float max1 = max(distance(node1, uv), distance(node2, uv));
+  // float max2 = max(distance(node2, uv), distance(node3, uv));
+  // float max3 = max(distance(node3, uv), distance(node1, uv));
+  // float distMax = max(max(max1, max2), max(max2, max3));
+
+  float dist = abs(distance(uvWave, uv));
+
+  // if(dist > 0.1 && dist < 0.9) {
+    color.rgb = color.rgb + sqrt(dist);
+  // }
+  
+
+	gl_FragColor = color;
 }

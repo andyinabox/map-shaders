@@ -42,6 +42,7 @@
     "gl-shader": "^4.2.1",
     "gl-texture2d": "^2.1.0",
     "glsl-map": "^1.0.1",
+    "glsl-noise": "^0.0.0",
     "glslify": "^7.0.0",
     "mapbox-gl": "^0.51.0",
     "orbit-controls-es6": "^2.0.0",

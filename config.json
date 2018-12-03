@@ -1,0 +1,33 @@
+{
+  "options" : {
+   "mapCanvasSelector": ".mapboxgl-canvas",
+   "mapStyles": {
+      "satellite": "mapbox://styles/mapbox/satellite-v9"
+   }
+  },
+  "params" : {
+   "mapStyle": "satellite",
+   "shader": "wave1",
+   "lon": -93.282496,
+   "lat": 44.9998631,
+   "zoom": 16
+  },
+  "shaders" : {
+    "default": {
+      "vert": "default.vert",
+      "frag": "default.frag"
+    },
+    "warp": {
+      "vert": "default.vert",
+      "frag": "warp.frag"
+    },
+    "breathe": {
+      "vert": "default.vert",
+      "frag": "breathe.frag"
+    },
+    "wave1": {
+      "vert": "default.vert",
+      "frag": "wave1.frag"
+    }
+  }
+}

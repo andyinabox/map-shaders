@@ -7,48 +7,17 @@ import drawTriangle from 'a-big-triangle';
 
 mapboxgl.accessToken = process.env.MAPBOX_API_TOKEN;
 
-const _shaders = {
-  default: {
-    vert: require('../glsl/default.vert'),
-    frag: require('../glsl/default.frag')
-  },
-  warp: {
-    vert: require('../glsl/default.vert'),
-    frag: require('../glsl/warp.frag')
-  },
-  breathe: {
-    vert: require('../glsl/default.vert'),
-    frag: require('../glsl/breathe.frag')
-  },
-  wave1: {
-    vert: require('../glsl/default.vert'),
-    frag: require('../glsl/wave1.frag')
-  },
-}
-
-const _map_styles = {
-  satellite: 'mapbox://styles/mapbox/satellite-v9'
-};
-
-// params used for the gui
-const _default_params = {
-  mapStyle: 'satellite',
-  shader: 'warp',
-  lon: -93.282496,
-  lat: 44.9998631,
-  zoom: 16
-};
-
-// costructor options
-const _default_options = {
-  mapCanvasSelector: '.mapboxgl-canvas'
-}
-
-
 export default class App {
-  constructor(params={}, options={}) {
-    this.params = Object.assign({}, _default_params, params);
-    this.opts = Object.assign({}, _default_options, options);
+  constructor(config={}) {
+    this.params = config.params;
+    this.opts = config.options;
+    this.shaders = config.shaders;
+
+    Object.keys(this.shaders).forEach(key => {
+      const shader = this.shaders[key];
+      shader.vert = require(`../glsl/${shader.vert}`);
+      shader.frag = require(`../glsl/${shader.frag}`);
+    });
 
     this.el = document.createElement('div');
     this.el.id = 'map';
@@ -58,7 +27,7 @@ export default class App {
 
     this.map = new mapboxgl.Map({
       container: this.el,
-      style: _map_styles[this.params.mapStyle],
+      style: this.opts.mapStyles[this.params.mapStyle],
       zoom: this.params.zoom,
       center: new mapboxgl.LngLat(this.params.lon, this.params.lat)
     });
@@ -118,8 +87,8 @@ export default class App {
     this.gui = new dat.GUI();
 
     // set gui controls
-    this.gui.add(this.params, 'shader', Object.keys(_shaders));
-    this.gui.add(this.params, 'mapStyle', Object.keys(_map_styles));
+    this.gui.add(this.params, 'shader', Object.keys(this.shaders));
+    this.gui.add(this.params, 'mapStyle', Object.keys(this.opts.mapStyles));
 
     // automatically set listener for all params
     this.gui.__controllers.forEach((controller, index) => {
@@ -131,9 +100,16 @@ export default class App {
     const gl = this.shell.gl;
     const mapCanvas = this.el.querySelector('.mapboxgl-canvas');
     if(gl && mapCanvas) {
+      const vert = this.shaders[this.params.shader].vert;
+      const frag = this.shaders[this.params.shader].frag;
+      console.log("VERT SHADER");
+      console.log(vert);
+      console.log("FRAG SHADER");
+      console.log(frag);
+      
       this.mapCanvas = mapCanvas;
       this.texture = createTexture(gl, this.mapCanvas)
-      this.shader = createShader(gl, _shaders[this.params.shader].vert, _shaders[this.params.shader].frag);
+      this.shader = createShader(gl, vert, frag);
       this.shader.attributes.position.location = 0
     }
   }
