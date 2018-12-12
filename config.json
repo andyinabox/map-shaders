@@ -15,10 +15,11 @@
   },
   "params" : {
    "mapStyle": "satellite-streets",
-   "shader": "warp3",
+   "shader": "perlin",
    "lon": -93.282496,
    "lat": 44.9998631,
-   "zoom": 16
+   "zoom": 15,
+   "movementSpeed": 1
   },
   "shaders" : {
     "default": {
@@ -44,6 +45,10 @@
     "wave1": {
       "vert": "default.vert",
       "frag": "wave1.frag"
+    },
+    "perlin": {
+      "vert": "default.vert",
+      "frag": "perlin.frag"
     }
   }
 }

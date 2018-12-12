@@ -14,6 +14,8 @@ export default class App {
     this.opts = config.options;
     this.shaders = config.shaders;
 
+    this.params.deltaMapPixels = [0, 0];
+
     Object.keys(this.shaders).forEach(key => {
       const shader = this.shaders[key];
       shader.vert = require(`../glsl/${shader.vert}`);
@@ -95,15 +97,24 @@ export default class App {
   }
 
   glRender(t) {
-    const panX = 0;
-    const panY = -1;
+    const mouseDelta = [this.shell.mouseX - this.shell.prevMouseX, this.shell.mouseY - this.shell.prevMouseY];
+    const panX = mouseDelta[0] * this.params.movementSpeed;
+    const panY = mouseDelta[1] * this.params.movementSpeed;
+    this.params.deltaMapPixels[0] += panX;
+    this.params.deltaMapPixels[1] += panY;
     this.map.panBy([panX, panY], { animate: false });
-
+    const center = this.map.getCenter().toArray();
+    this.params.lat = center[1];
+    this.params.lon = center[0];
+    // console.log(this.params.deltaMapPixels);
     //Draw it
     if (this.texture && this.shader && this.mapCanvas) {
       this.texture.setPixels(this.mapCanvas);
       this.shader.bind()
       this.setShaderToyUniforms(this.shader, [this.texture], t);
+      this.shader.uniforms.deltaMapPixels = this.params.deltaMapPixels;
+      this.shader.uniforms.mapCoordinates = [this.params.lon, this.params.lat, this.params.zoom];
+      // console.log(this.shader.uniforms.deltaMapPixels);
       // this.shader.uniforms.panDelta = [
       //   this.shell.width/this.shell.width-panX,
       //   this.shell.height/this.shell.height-panY
@@ -132,6 +143,9 @@ export default class App {
     // set gui controls
     this.gui.add(this.params, 'shader', Object.keys(this.shaders));
     this.gui.add(this.params, 'mapStyle', Object.keys(this.opts.mapStyles));
+    this.gui.add(this.params, "movementSpeed", 0, 30);
+    // this.gui.add(this.params, "movementX", -1, 1);
+    // this.gui.add(this.params, "movementY", -1, 1);
 
     // automatically set listener for all params
     this.gui.__controllers.forEach((controller, index) => {
